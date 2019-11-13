@@ -1,80 +1,81 @@
-#!/bin/bash 
+# /bin/bash -x
 
-echo "----------GamblerGame----------"
+read -p "Enter the number of days" maxDays
 
-read -p "Enter how many days you want to play " days
-echo ""
-declare -A stakelist
-counter=0;
-stakeBrought=0;
-stakegained=0;
-win=1;
-lastdayremaining=0;
-maxLimitForToday=0;
-minLimitForToday=0;
-wincounter=0;
-losscounter=0;
 
-function gamble(){
-	bet=$(( RANDOM % 2 ))
-	if [ $bet -eq $win ]
-		then
-		stake=$(( $stake + 1 ))
-		wincounter=$(($wincounter+1))
-		else
-		stake=$(( $stake - 1 ))
-		losscounter=$(($losscounter+1))
+declare stake
+declare maximumloss
+declare goal
+declare fiftyPerc
+declare enoughForToday=0
+stakefinal=0
+day=1
+win=1
+winCount=0
+lossCount=0
+win=0
+loss=0
+Days=20
+
+function gamble(){  
+   betResult=$((RANDOM%2))
+	
+	if [ $betResult == $win ]
+	then
+		win=$((win+1))
+		stakefinal=$(($stakefinal+1))
+	else
+		loss=$((loss+1))
+		stakefinal=$(($stakefinal-1))
 	fi
 }
-
-function loosWinCondition(){
-	if [ $stakeBrought -lt $stakegained ]
-	then
-	echo "-- We had won $" $(( $stakegained - $stakeBrought ))" --" 
-	elif [ $stakeBrought -gt $stakegained ]
-	then
-	echo "Sorry... We had lost $" $(( $stakeBrought - $stakegained ))
-	fi
-}
-
-function limitedGames(){
-read -p "how many Games in day ? " games
-	for((day=1; day <= $days; day++))
+function limitedGames() {
+while [ $day -le $maxDays ]
+do
+	echo "day : "$day
+	gameNum=0
+	stake=10
+	stakefinal=$(($stakefinal+$stake))
+	fiftyPerc=$(( $(($stakefinal*50)) / 100 ))
+	maximumloss=$(($stakefinal-$fiftyPerc))
+	goal=$(($stakefinal+$fiftyPerc))
+	echo "maxLimit: " $goal
+	echo "minLimit: "$maximumloss
+	echo "today's stake: "$stakefinal
+	while :
 	do
-			echo "---day" $day "---"
-			stake=10;
-			lastdayremaining=$(( $lastdayremaining + $stake ))
-			stakeBrought=$(($stakeBrought + $stake))
-			stakegained=$(($stakegained+$lastdayremaining))
-			stake=$lastdayremaining
-			maxLimitForToday=$(( $stake + $(($stake/2)) ))
-		echo "maxlimit--------"$maxLimitForToday
-			minLimitForToday=$(( $stake/2 ))
-		echo "minlimit--------"$minLimitForToday
-			for((game=1; game <= $games; game++))
-			do
-			if [[ $stake < $maxLimitForToday ]] || [[ $stake > $minLimitForToday  ]]
-			then
-			gamble
-			echo $stake
-			
-			else	break
-			fi
-lastdayremaining=$stake
-			done
-			stakelist[$((counter++))]=$stake
-			echo "amount at the end of day" $stake
+	if [ $stakefinal -ge $goal ]
+	then
+		echo "goal reached..... enough for today "
+		enoughForToday=1
+	elif [ $stakefinal -le $maximumloss ]
+	then
+		echo "lost too much money...enough for today"
+		enoughForToday=1
+	fi
+		gamble
+		gameNum=$(($gameNum+1))
+		echo $stakefinal
+		if [ $gameNum == $Days ]
+		then
+		echo "limit over"
+			break
+		elif [ $enoughForToday == 1 ]
+		then
+			enoughForToday=0
+			break
+		fi
 	done
-
-loosWinCondition
+		day=$(($day+1))
+		echo "stake at the end of the day : "$stakefinal
+	if [ $(($day%20)) == 0 ]
+	then
+		analyzeTheGames
+	fi
+done
 }
-
-
 limitedGames
-echo "you have won the bet "$wincounter "times"
-echo "you have lost the bet "$losscounter "times"
-echo ${stakelist[@]}
-
-
-
-
+echo
+	echo "total amount won in $day is $win........."
+	echo "total amount lost in $day is $loss......." 
+	echo "started with initial amount $stake and currently has $stakefinal"
