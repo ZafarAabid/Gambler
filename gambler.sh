@@ -34,7 +34,7 @@ function loosWinCondition(){
 	elif [ $stakeBrought -gt $stakegained ]
 	then
 	echo "Sorry... We had lost $" $(( $stakeBrought - $stakegained ))
-	fi 
+	fi
 }
 
 function limitedGames(){
@@ -63,10 +63,10 @@ read -p "how many Games in day ? " games
 lastdayremaining=$stake
 			done
 			stakelist[$((counter++))]=$stake
-			echo "amount at the end of day" $stake	
+			echo "amount at the end of day" $stake
 	done
 
-loosWinCondition	
+loosWinCondition
 }
 
 
