@@ -5,77 +5,75 @@ echo "----------GamblerGame----------"
 read -p "Enter how many days you want to play " days
 echo ""
 declare -A stakelist
-dayss=0;
-stakes=0;
+counter=0;
+stakeBrought=0;
+stakegained=0;
 win=1;
+lastdayremaining=0;
+maxLimitForToday=0;
+minLimitForToday=0;
+wincounter=0;
+losscounter=0;
 
-function gamble()
-{
+function gamble(){
 	bet=$(( RANDOM % 2 ))
 	if [ $bet -eq $win ]
 		then
 		stake=$(( $stake + 1 ))
+		wincounter=$(($wincounter+1))
 		else
 		stake=$(( $stake - 1 ))
+		losscounter=$(($losscounter+1))
 	fi
 }
 
-function limitedGames()
-{
-	read -p "how many Games in day ? " games
+function loosWinCondition(){
+	if [ $stakeBrought -lt $stakegained ]
+	then
+	echo "-- We had won $" $(( $stakegained - $stakeBrought ))" --" 
+	elif [ $stakeBrought -gt $stakegained ]
+	then
+	echo "Sorry... We had lost $" $(( $stakeBrought - $stakegained ))
+	fi 
+}
+
+function limitedGames(){
+read -p "how many Games in day ? " games
 	for((day=1; day <= $days; day++))
 	do
-		echo "---day" $day "---"
-		stake=100;
-		
-		for((game=1; game <= $games; game++))
-		do
-		gamble $stake
-		echo $stake	
-		done
-	stakes=$(($stakes+$stake))
-	# COMPUTING ALL DAYS FINAL STAKES INTO A DICTIONARY
-	#stakelist[$((dayss++))]=$stake
+			echo "---day" $day "---"
+			stake=10;
+			lastdayremaining=$(( $lastdayremaining + $stake ))
+			stakeBrought=$(($stakeBrought + $stake))
+			stakegained=$(($stakegained+$lastdayremaining))
+			stake=$lastdayremaining
+			maxLimitForToday=$(( $stake + $(($stake/2)) ))
+		echo "maxlimit--------"$maxLimitForToday
+			minLimitForToday=$(( $stake/2 ))
+		echo "minlimit--------"$minLimitForToday
+			for((game=1; game <= $games; game++))
+			do
+			if [[ $stake < $maxLimitForToday ]] || [[ $stake > $minLimitForToday  ]]
+			then
+			gamble
+			echo $stake
+			
+			else	break
+			fi
+lastdayremaining=$stake
+			done
+			stakelist[$((counter++))]=$stake
+			echo "amount at the end of day" $stake	
 	done
 
+loosWinCondition	
 }
 
-function calculativeGame()
-{
-	for((day=1; day <= $days; day++))
-	do
-		echo "---day" $day "---"
-		stake=100;
-		daywiseStake=$stake;
-		leastLimit=$(( $daywiseStake/2 ))
-		mostLimit=$(( $daywiseStake + $(( $daywiseStake/2 )) ))	
-		while [[ $stake > $leastLimit ]] || [[ $stake < $mostLimit ]]
-		do
-			if [[ $stake > $leastLimit ]] || [[ $stake < $mostLimit ]]
-				then
-				gamble
-				echo $stake
-			else
-				break
-			fi
-		done		
-	done	
-}
-echo "Here is a two way to play"
-echo "1)limited play    -- having player defined rounds to play"
-echo "2)daff play       -- gameplay to either loos or win"
-read -p "Which one you wanna play 1/2" condition
 
-case $condition in
-			1)
-			limitedGames;;
-			2)
-			calculativeGame;;
-			*)
-			echo "wrong choice... daff game start"
-			limitedGames;;
-esac
-#echo ${stakelist[@]}
+limitedGames
+echo "you have won the bet "$wincounter "times"
+echo "you have lost the bet "$losscounter "times"
+echo ${stakelist[@]}
 
 
 
